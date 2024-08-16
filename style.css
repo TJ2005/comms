@@ -1,0 +1,38 @@
+.logo-container p {
+  font-family: "Montserrat", sans-serif;
+  font-size: 200px;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  /* Ensure transform is applied correctly */
+  transform: scale(0.5); /* Set the initial scale of the element to 0.5 */
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+}
+.js-typing-cursor {
+  position: relative;
+  &:after {
+    position: absolute;
+    content: '_';
+    right: 0;
+    animation: blink 1s infinite;
+  }
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
