@@ -1,5 +1,5 @@
 .logo-container p {
-  font-family: "Montserrat", sans-serif;
+  font-family: "Roboto Mono", sans-serif;
   font-size: 200px;
   font-optical-sizing: auto;
   font-weight: 800;
@@ -18,7 +18,7 @@
 .js-typing-cursor {
   position: relative;
   &:after {
-    position: absolute;
+    position: relative;
     content: '_';
     right: 0;
     animation: blink 1s infinite;
