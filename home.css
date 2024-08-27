@@ -1,6 +1,7 @@
 *{
     margin: 0;
     padding: 0;
+    font-family: "Inter";
 }
 
 .step1{
@@ -20,8 +21,40 @@
 
 .gButton{
     transform: translateX(25%);
+    padding-top: 15px;
+}
+
+.gButton input{
+    color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(217,217,217,0.8);
+    height: 205x;
+    border: none;
+    box-shadow: 0px 5px 5px #a9a9a9d7;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 4px;
 } 
 
 #username{
+    background-color: #d9d9d9;
     width: 100%;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.5);
+    border: none;
+    box-shadow: 0px 5px 5px #a9a9a9d7;
+    height: 24px;
+    border-radius: 7px;
 }
+
+#username:focus {
+    opacity: 1;
+    outline: none;
+  }
+  
+
+#username:focus::placeholder {
+    opacity: 1;
+    color: rgba(0, 0, 0, 1);
+  }
