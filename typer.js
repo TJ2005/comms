@@ -22,11 +22,33 @@ function typeNextCharacter() {
         // Schedule the next character
         setTimeout(typeNextCharacter, 100);
         // change this value if u want to change the speed of typing
+        console.log('index:', index);
+        console.log('text length:', text.length);
     } else {
         element.textContent = text;
+        // When the text animator completes we simply replace it with the 
+        // so it becomes complete
+        document.addEventListener('DOMContentLoaded', function () {
+            // Listen for DOMContentLoaded Parser to check if the page has loaded
+            console.log('DOM Fully Loaded and Parsed');
+            // call triggerAnimation()
+            console.log('calling trigger animation');
+            triggerAnimation()
+    });
+
     }
 }
 
+function triggerAnimation() {
+    console.log('Triggering animation');
+    var logoContainer = document.querySelector('.logo-container');
+    if (logoContainer) {
+        console.log('Element found, adding class');
+        logoContainer.classList.add('move-to-top-left');
+    } else {
+        console.log('Element not found');
+    }
+}
 // Start the typing animation
 typeNextCharacter();
 
