@@ -49,12 +49,13 @@
 }
 
 #username:focus {
-    opacity: 1;
     outline: none;
+    color: rgba(0, 0, 0, 1);
+
   }
   
 
 #username:focus::placeholder {
-    opacity: 1;
     color: rgba(0, 0, 0, 1);
+    
   }
