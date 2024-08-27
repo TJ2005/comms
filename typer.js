@@ -28,13 +28,9 @@ function typeNextCharacter() {
         element.textContent = text;
         // When the text animator completes we simply replace it with the 
         // so it becomes complete
-        document.addEventListener('DOMContentLoaded', function () {
-            // Listen for DOMContentLoaded Parser to check if the page has loaded
-            console.log('DOM Fully Loaded and Parsed');
-            // call triggerAnimation()
+        // call triggerAnimation()
             console.log('calling trigger animation');
-            triggerAnimation()
-    });
+            triggerAnimation();
 
     }
 }
