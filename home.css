@@ -92,3 +92,7 @@
     opacity: 0.8;
     transform: translateY(-100%);
 }
+
+.tips{
+    font-size: small;
+}
