@@ -1,0 +1,11 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.chatbox{
+    position: absolute;
+    transform: translate(50%, 25%);
+    background-color:#d9d9d9;
+    border-radius: 40px;
+}
