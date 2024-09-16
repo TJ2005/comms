@@ -1,4 +1,5 @@
-.logo-container p {
+/* Logo Part */
+.logo-container p{
   font-family: "Roboto Mono", sans-serif;
   font-size: 200px;
   font-optical-sizing: auto;
@@ -8,6 +9,16 @@
   transform: scale(0.5); /* Set the initial scale of the element to 0.5 */
 }
 
+.navbar-brand p{
+  font-family: "Roboto Mono", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+  /* Ensure transform is applied correctly */
+  transform: scale(0.5); /* Set the initial scale of the element to 0.5 */
+}
+
+/* NIGGA */
 .logo-container {
   display: flex;
   justify-content: center;
@@ -17,6 +28,28 @@
 }
 .js-typing-cursor {
   position: relative;
+
+}
+
+
+
+.hide{
+  display: none;
+}
+
+@keyframes showAnimation {
+  0% {
+    display: none;
+  }
+  100% {
+    display: block;
+  }
+}
+
+.show-animation {
+  animation: showAnimation 1s forwards;
+}
+#js-typing{
   &:after {
     position: relative;
     content: '_';
@@ -24,7 +57,6 @@
     animation: blink 500ms infinite;
   }
 }
-
 @keyframes blink {
   0% {
     opacity: 1;
@@ -46,3 +78,4 @@
   transition: all 0.5s ease; /* Smooth transition */
   
 }
+

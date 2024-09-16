@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     let currentParent = 'logo-container'; // Define currentParent globally
 
+    const userPageElement = document.getElementById('user-page');
+
+
     // Get the element to animate
     const element = document.getElementById('js-typing');
 
@@ -23,20 +26,15 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             element.textContent = text;
             triggerAnimation();
+            userPageElement.classList.add('show-animation');
+            userPageElement.classList.remove('hide');
         }
     }
-
     function triggerAnimation() {
         const element = document.getElementById('js-typing');
         const parent1 = document.getElementById('logo-container');
-        const parent2 = document.getElementById('navbar');
-        
-        if (!parent1 || !parent2) {
-            console.error("One of the target parents does not exist.");
-            return;
-        }
-
-        const targetParent = currentParent === 'logo-container' ? parent2 : parent1;
+        const parent2 = document.getElementById('navbar-logo');
+        const targetParent = parent2;
         const rect = element.getBoundingClientRect();
         const clone = element.cloneNode(true);
         document.body.appendChild(clone);
