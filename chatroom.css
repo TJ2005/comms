@@ -5,7 +5,14 @@
 
 .chatbox{
     position: absolute;
-    transform: translate(50%, 25%);
+    transform: translate(50%, 35%);
+    background-color:#d9d9d9;
+    border-radius: 40px;
+}
+
+.codebox{
+    position: absolute;
+    transform: translate(50%, 35%);
     background-color:#d9d9d9;
     border-radius: 40px;
 }
