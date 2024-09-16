@@ -1,60 +1,67 @@
-// Get the element to animate
-const element = document.getElementById('js-typing');
+document.addEventListener('DOMContentLoaded', function () {
+    let currentParent = 'logo-container'; // Define currentParent globally
 
-// Extract the text content of the element
-const text = element.textContent;
+    // Get the element to animate
+    const element = document.getElementById('js-typing');
 
-// Clear the text content initially
-element.textContent = '';
+    // Extract the text content of the element
+    const text = element.textContent;
 
-// Use a typing speed defined in a data attribute
-const typingSpeed = parseInt(element.getAttribute('data-typing-speed'));
+    // Clear the text content initially
+    element.textContent = '';
 
-// Append characters to the element one by one, simulating typing
-let index = 0;
-function typeNextCharacter() {
-    // Check if there are more characters to type
-    if (index < text.length) {
-        // Append the next character
-        element.textContent += text.charAt(index);
-        // Increment the index
-        index++;
-        // Schedule the next character
-        setTimeout(typeNextCharacter, 100);
-        // change this value if u want to change the speed of typing
-        console.log('index:', index);
-        console.log('text length:', text.length);
-    } else {
-        element.textContent = text;
-        // When the text animator completes we simply replace it with the 
-        // so it becomes complete
-        // call triggerAnimation()
-            console.log('calling trigger animation');
+    // Use a typing speed defined in a data attribute
+    const typingSpeed = 80;
+
+    // Append characters to the element one by one, simulating typing
+    let index = 0;
+    function typeNextCharacter() {
+        if (index < text.length) {
+            element.textContent += text.charAt(index);
+            index++;
+            setTimeout(typeNextCharacter, typingSpeed);
+        } else {
+            element.textContent = text;
             triggerAnimation();
-
+        }
     }
-}
 
-function triggerAnimation() {
-    console.log('Triggering animation');
-    var logoContainer = document.querySelector('.logo-container');
-    if (logoContainer) {
-        console.log('Element found, adding class');
-        logoContainer.classList.add('move-to-top-left');
-    } else {
-        console.log('Element not found');
+    function triggerAnimation() {
+        const element = document.getElementById('js-typing');
+        const parent1 = document.getElementById('logo-container');
+        const parent2 = document.getElementById('navbar');
+        
+        if (!parent1 || !parent2) {
+            console.error("One of the target parents does not exist.");
+            return;
+        }
+
+        const targetParent = currentParent === 'logo-container' ? parent2 : parent1;
+        const rect = element.getBoundingClientRect();
+        const clone = element.cloneNode(true);
+        document.body.appendChild(clone);
+
+        clone.style.position = 'absolute';
+        clone.style.left = `${rect.left}px`;
+        clone.style.top = `${rect.top}px`;
+        clone.style.width = `${rect.width}px`;
+        clone.style.height = `${rect.height}px`;
+
+        element.style.opacity = 0;
+        targetParent.appendChild(element);
+
+        const newRect = element.getBoundingClientRect();
+        requestAnimationFrame(() => {
+            clone.style.transform = `translate(${newRect.left - rect.left}px, ${newRect.top - rect.top}px)`;
+        });
+
+        clone.addEventListener('transitionend', () => {
+            clone.remove();
+            element.style.opacity = 1;
+            currentParent = currentParent === 'logo-container' ? 'navbar' : 'logo-container';
+        });
     }
-}
-// Start the typing animation
-typeNextCharacter();
 
-// Include a blinking cursor effect using a CSS class
-element.classList.add('js-typing-cursor');
+    typeNextCharacter();
+});
 
-/*the current state of this project is i have made the loading animation for startup
-now i want to prpoceed and i need ur guidance
-
-step 0: while the animation is playing the other page content should be loaded.
-step 1: Play animation until Type next character is completed.
-step 2: if after completion the page is not loaded for the client then the animation stays there until its loaded.
-step 4: after page loads the page changes from this to the landing page which i will be making */
