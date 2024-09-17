@@ -1,18 +1,38 @@
 *{
     margin: 0;
     padding: 0;
+    font-family: "Roboto Mono", sans-serif;
 }
 
-.chatbox{
+.sam{
     position: absolute;
-    transform: translate(50%, 35%);
-    background-color:#d9d9d9;
+    height: 80%;
+    width: 80%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     border-radius: 40px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+}
+.chatbox{
+    background-color: #d9d9d9;
+    border-radius: 40px;
+    margin: 10px;
+    padding: 20px;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .codebox{
-    position: absolute;
-    transform: translate(50%, 35%);
-    background-color:#d9d9d9;
-    border-radius: 40px;
+    background-color: #d9d9d9;
+    border-radius: 11px;
+    margin: 10px;
+    padding: 20px;
+    margin-bottom: 40px;
 }
+
