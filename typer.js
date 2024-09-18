@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             element.textContent = text;
             triggerAnimation();
-            userPageElement.classList.add('show-animation');
             userPageElement.classList.remove('hide');
+            userPageElement.classList.add('show-animation');
         }
     }
     function triggerAnimation() {

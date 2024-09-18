@@ -18,7 +18,7 @@
   transform: scale(0.5); /* Set the initial scale of the element to 0.5 */
 }
 
-/* NIGGA */
+
 .logo-container {
   display: flex;
   justify-content: center;
@@ -49,6 +49,7 @@
 .show-animation {
   animation: showAnimation 1s forwards;
 }
+
 #js-typing{
   &:after {
     position: relative;
