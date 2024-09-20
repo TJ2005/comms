@@ -1,7 +1,7 @@
 *{
     margin: 0;
     padding: 0;
-    font-family: "Roboto Mono", sans-serif;
+    font-family:  sans-serif;
 }
 
 .sam{
@@ -27,6 +27,9 @@
     margin-right: 0;
     padding-left: 0;
     padding-right: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
 }
 
 .codebox{
@@ -50,33 +53,28 @@
     align-items: center;
 }
 
-.textinput{
-    position: absolute;
-    bottom: 0;
-    margin: 10px;
-    padding: 20px;
-    display: flex; 
-    left: 0; 
-    width: 50%; 
-    margin: auto;
+.txtinput{
+    margin-top: auto;
+    width: 98%; 
+    display: flex;
     justify-content: center;
 }
 
-.send{
-    border-radius: 50px;
-}
-.textinput #sendbtn{
+.txtinput #sendbtn{
     width: 48px;
     height: 48px;
     border-radius: 50%;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
     border: none;
 }
 
-.textinput #input{
+.txtinput #input{
     margin-right: 10px;
-    width: 80%;
+    width: 87.5%;
+    height: 28px;
     padding: 10px;
     background-color: white;
     border: none;
     border-radius: 50px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
 }
