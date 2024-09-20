@@ -38,6 +38,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    position: relative;
 }
 
 .sharebtn{
@@ -45,4 +46,14 @@
     border: none;
     display: flex; 
     align-items: center;
+}
+
+.textinput{
+    position: absolute;
+    bottom: 0;
+    left: 50%; 
+}
+
+.send{
+    border-radius: 100%;
 }
