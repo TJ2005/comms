@@ -148,7 +148,7 @@
 @keyframes pullDown {
     0% {
       transform: translateY(0);
-      opacity: 1;
+      opacity: 0;
     }
     20%{
         transform: translateY(5%);
@@ -156,6 +156,6 @@
     }
     100% {
       transform: translateY(100%);
-      opacity: 0;
+      opacity: 1;
     }
 }

@@ -12,8 +12,8 @@ function showsendopts() {
     closeImage.style.display = "flex";
     closeImage.style.animation = 'closeanimation 0.6s ease-in-out forwards';
   } else {
-    sendopts.style.display = "none";
     sendopts.style.animation = 'pullDown 0.5s forwards';
+    sendopts.style.display = "none";
     sendImage.style.display = "flex";
     sendImage.style.animation = 'sendanimation 0.5s ease-in-out forwards';
     closeImage.style.display = "none";
