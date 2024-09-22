@@ -92,15 +92,51 @@
     border-radius: 25px;
     justify-content: center;
     align-items: center;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.3);
 }
 
+.close{
+    display: none;
+    z-index: 1;
+    margin: 0 auto;
+    transition: 0.5s;
+}
+
+.send{
+    transition: 0.5s;
+    margin: 0 auto;
+}
+
+@keyframes closeanimation {
+    0% {
+        transform: rotateZ(0);
+        opacity: 0;
+    }
+    100% {
+        transform: rotateZ(180deg);
+        opacity: 1;
+    }
+
+}
+
+@keyframes sendanimation {
+    0% {
+        transform: rotateZ(-180deg);
+        opacity: 0;
+    }
+    100% {
+        transform: rotateZ(0deg);
+        opacity: 1;
+    }
+
+}
 @keyframes pullUp {
     0% {
       transform: translateY(100%);
       opacity: 0;
     }
     20%{
-        transform: translateY(20%);
+        transform: translateY(5%);
         opacity: 0;
     }
     100% {
@@ -115,7 +151,7 @@
       opacity: 1;
     }
     20%{
-        transform: translateY(20%);
+        transform: translateY(5%);
         opacity: 0;
     }
     100% {
