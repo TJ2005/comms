@@ -5,7 +5,7 @@
 
 /* Logo Part */
 .logo-container p{
-  font-family:  sans-serif;
+  font-family: sans-serif;
   font-size: 200px;
   font-optical-sizing: auto;
   font-weight: 800;
@@ -15,7 +15,7 @@
 }
 
 .navbar-brand p{
-  font-family:  sans-serif;
+  font-family: sans-serif;
   font-optical-sizing: auto;
   font-weight: 800;
   font-style: normal;
