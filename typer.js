@@ -1,8 +1,9 @@
+const animationPlayed = sessionStorage.getItem('animationPlayed');
+console.log(animationPlayed)
 document.addEventListener('DOMContentLoaded', function () {
     let currentParent = 'logo-container'; // Define currentParent globally
 
     const userPageElement = document.getElementById('user-page');
-
 
     // Get the element to animate
     const element = document.getElementById('js-typing');
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     element.textContent = '';
 
     // Use a typing speed defined in a data attribute
-    const typingSpeed = 80;
+    const typingSpeed = 80; 
 
     // Append characters to the element one by one, simulating typing
     let index = 0;
@@ -63,3 +64,9 @@ document.addEventListener('DOMContentLoaded', function () {
     typeNextCharacter();
 });
 
+
+if (animationPlayed) {
+    console.log('ANimation was played');
+} else {
+    
+}
