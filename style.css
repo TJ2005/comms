@@ -1,11 +1,11 @@
 /*Selecting HTML for changing font {-- black-cat-hacker}*/
 *{
-  font-family: sans-serif;
+  font-family: "roboto mono", sans-serif;
 }
 
 /* Logo Part */
 .logo-container p{
-  font-family: sans-serif;
+  font-family: "roboto mono";
   font-size: 200px;
   font-optical-sizing: auto;
   font-weight: 800;
@@ -15,7 +15,7 @@
 }
 
 .navbar-brand p{
-  font-family: sans-serif;
+  font-family: "roboto mono";
   font-optical-sizing: auto;
   font-weight: 800;
   font-style: normal;
