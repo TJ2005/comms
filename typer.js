@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Clone the original element for animation
         const clone = element.cloneNode(true);
         document.body.appendChild(clone);
-
         // --- Set the initial position of the clone at the current location of the logo
         clone.style.position = 'absolute';
         clone.style.left = `${rect.left}px`;  
@@ -66,3 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Start typing effect
     typeNextCharacter();
 });
+
+// next fix to this
+// 1. Fix the issue with the navbar logo animation
+// 2. Instead of movin animation lets just fade in and fade out the logo. it will look more smooth and nice
