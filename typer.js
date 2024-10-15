@@ -16,56 +16,72 @@ document.addEventListener('DOMContentLoaded', function () {
             index++;
             setTimeout(typeNextCharacter, typingSpeed);
         } else {
-            element.textContent = text;
-            triggerAnimation();  // Call the animation after typing effect is done
-            userPageElement.classList.remove('hide');
-            userPageElement.classList.add('show-animation');
+            // Typing effect is complete
+            setTimeout(clearTextContent, 500);
+            // element.textContent = text;
+            
+            setTimeout(() => {
+                userPageElement.classList.remove('hide');
+                userPageElement.classList.add('show-animation');
+            }, 1000);
+            // WE AINT CALLING THIS triggerAnimation();  // Call the animation after typing effect is done
+            // Lets instead just fade animate the comms out and fade in the user page
+
         }
     }
+    // Function to clear the text content one by one
+    function clearTextContent() {
+            if (index > 0) {
+                element.textContent = element.textContent.slice(0, -1);
+                index--;
+                setTimeout(clearTextContent, typingSpeed*0.38);
+            } else {
+                element.classList.add('hide');
+                // Text clearing effect is complete
+                // You can add any additional logic here if needed
+            }
+        }
+        
+    
+        // Function to fade out the logo text and fade it in the navbar
 
-    // Function to animate the logo text from the center to the navbar
+    // Function to fade out the logo text and fade it in the navbar
     function triggerAnimation() {
-        const parent2 = document.getElementById('navbar-logo');
-
-        // Get the original position of the `js-typing` element (centered logo)
-        const rect = element.getBoundingClientRect();
+        // Lets never call this function cuz it aint working rn.
+        // Somebody branch this shit fix it and merge it back 
+        const navbarLogo = document.getElementById('navbar-logo');
 
         // Clone the original element for animation
         const clone = element.cloneNode(true);
         document.body.appendChild(clone);
-        // --- Set the initial position of the clone at the current location of the logo
-        clone.style.position = 'absolute';
-        clone.style.left = `${rect.left}px`;  
-        clone.style.top = `${rect.top}px`;    
-        clone.style.width = `${rect.width}px`;  
-        clone.style.height = `${rect.height}px`; 
-        clone.style.transition = 'all 1s ease'; // Smooth transition for movement and scaling
-        clone.style.transform = 'none'; // Reset any transforms initially
+
+        // Set initial styles for the clone
+
+        clone.style.left = `${element.getBoundingClientRect().left}px`;
+        clone.style.top = `${element.getBoundingClientRect().top}px`;
+        clone.style.width = `${element.getBoundingClientRect().width}px`;  // Retain the same width
+        clone.style.height = `${element.getBoundingClientRect().height}px`;  // Retain the same height
+        clone.style.transition = 'opacity 1s ease';
+        clone.style.opacity = 1;
 
         // Hide the original element to avoid duplicate display during animation
         element.style.opacity = 0;
 
-        // --- Use requestAnimationFrame to ensure browser renders the clone at its initial position
-        requestAnimationFrame(() => {
-            // --- Use offsetTop and offsetLeft for more accurate positioning
-            const newRect = parent2.getBoundingClientRect();
-            
-            // Adjust the scaling factor to make the font size more reasonable
-            clone.style.transform = `translate(${newRect.left - rect.left}px, ${newRect.top - rect.top}px) scale(0.8)`; // Scale adjusted
-        });
+        // Fade out the clone
+        setTimeout(() => {
+            clone.style.opacity = 0;
+        }, 100);
 
-        // Listen for the end of the transition to clean up the clone and restore the original element
+        // Listen for the end of the transition to clean up the clone and fade in the original element in the navbar
         clone.addEventListener('transitionend', () => {
             clone.remove();  // Remove the animated clone after the transition is complete
             element.style.opacity = 1;  // Show the original element again
-            parent2.appendChild(element); // --- Move the original element into the navbar
+            navbarLogo.appendChild(element); // Move the original element into the navbar
+            element.style.transition = 'opacity 1s ease';
+            element.style.opacity = 1;  // Fade in the original element in the navbar
         });
     }
 
     // Start typing effect
     typeNextCharacter();
 });
-
-// next fix to this
-// 1. Fix the issue with the navbar logo animation
-// 2. Instead of movin animation lets just fade in and fade out the logo. it will look more smooth and nice

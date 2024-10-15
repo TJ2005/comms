@@ -16,11 +16,8 @@
 
 .navbar-brand p{
   font-family: "roboto mono";
-  font-optical-sizing: auto;
   font-weight: 800;
   font-style: normal;
-  /* Ensure transform is applied correctly */
-  transform: scale(0.5); /* Set the initial scale of the element to 0.5 */
 }
 
 
@@ -44,10 +41,23 @@
 
 @keyframes showAnimation {
   0% {
-    display: none;
+    opacity: 0%;
   }
   100% {
-    display: block;
+    opacity: 100%;
+  }
+}
+
+
+@keyframes hideAnimation {
+  0% {
+    opacity: 100%;
+  }
+  99% {
+    opacity: 0%;
+  }
+  100%{
+    display: none; /* Ensure the element is hidden after the animation */
   }
 }
 
@@ -55,7 +65,11 @@
   animation: showAnimation 1s forwards;
 }
 
-#js-typing{
+.hide-animation{
+  animation:hideAnimation 1s forwards;
+}
+
+#animate-cursor,#js-typing{
   &:after {
     position: relative;
     content: '_';
