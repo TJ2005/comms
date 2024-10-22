@@ -20,17 +20,39 @@
 </head>
 
     <body>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar bg" aria-label="First navbar example">
             <div class="container-fluid">
-                <a class="navbar-brand" id="navbar-logo" href="#">
+              <a class="navbar-brand" href="#">               
                 <p id="animate-cursor">comms//</p>
-                </a> <!-- Placeholder for the logo -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample01" aria-label="Toggle navigation">
+              </a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample01" aria-controls="navbarsExample01" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
-                </button>
-            </div>
-        </nav>
+              </button>
         
+              <div class="collapse navbar-collapse" id="navbarsExample01">
+                <ul class="navbar-nav me-auto mb-2">
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Join Chatrooom</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#">login</a>
+                  </li>
+                  <!-- <li class="nav-item">
+                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                  </li> -->
+                  <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Google Management</a>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item" href="#">Account Settings</a></li>
+                      <li><a class="dropdown-item" href="#">Saved Chats</a></li>
+                      <li><a class="dropdown-item" href="#">Open Old Chats</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </nav>
+
 
 
         <div id="logo-container" class="logo-container">

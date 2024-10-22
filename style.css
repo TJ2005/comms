@@ -12,21 +12,25 @@
   font-style: normal;
   /* Ensure transform is applied correctly */
   transform: scale(0.5); /* Set the initial scale of the element to 0.5 */
+  height:auto;
+  
 }
 
 .navbar-brand p{
   font-family: "roboto mono";
   font-weight: 800;
   font-style: normal;
+  margin-left:0.5rem;
+  margin-top:0.5rem;
 }
 
 
 .logo-container {
+  vertical-align: middle;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-
+  height: 92vh;
 }
 .js-typing-cursor {
   position: relative;
