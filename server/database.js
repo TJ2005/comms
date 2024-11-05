@@ -1,10 +1,10 @@
-const initializer = `CREATE TABLE sessions (
+const initializer = `CREATE TABLE IF NOT EXISTS sessions (
     session_id SERIAL PRIMARY KEY,
     session_code VARCHAR(255) UNIQUE NOT NULL,
     usernames JSONB NOT NULL
 );
 
-CREATE TABLE messages (
+CREATE TABLE IF NOT EXISTS messages (
     message_id SERIAL PRIMARY KEY,
     session_id INTEGER REFERENCES sessions(session_id),
     username VARCHAR(255) NOT NULL,
@@ -12,24 +12,23 @@ CREATE TABLE messages (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE settings (
-    setting_id SERIAL PRIMARY KEY,
-    session_id INTEGER REFERENCES sessions(session_id),
+CREATE TABLE IF NOT EXISTS settings (
+    session_id INTEGER PRIMARY KEY REFERENCES sessions(session_id),
     expiry TIMESTAMP,
     attachments BOOLEAN,
     max_members INTEGER
 );
 
-CREATE TABLE session_admins (
+CREATE TABLE IF NOT EXISTS session_admins (
     session_admin_id SERIAL PRIMARY KEY,
     session_id INTEGER REFERENCES sessions(session_id) ON DELETE CASCADE,
     admin_username VARCHAR(255) NOT NULL
 );
 
-CREATE INDEX idx_session_code ON sessions(session_code);
-CREATE INDEX idx_session_id_messages ON messages(session_id);
-CREATE INDEX idx_session_id_settings ON settings(session_id);
-CREATE INDEX idx_session_id_admins ON session_admins(session_id);`;
+CREATE INDEX IF NOT EXISTS idx_session_code ON sessions(session_code);
+CREATE INDEX IF NOT EXISTS idx_session_id_messages ON messages(session_id);
+CREATE INDEX IF NOT EXISTS idx_session_id_settings ON settings(session_id);
+CREATE INDEX IF NOT EXISTS idx_session_id_admins ON session_admins(session_id);`;
 
 const { Pool } = require('pg');
 const pool = new Pool({
@@ -40,9 +39,22 @@ const pool = new Pool({
     port: 5432,
 });
 
+// initialized state flag
+let isInitialized = false;
+
+
 async function initialize() {
-    const res = await pool.query(initializer);
-    console.log(res);
+    if (isInitialized) {
+        console.log('Database is already initialized.');
+        return;
+    }
+    try {
+        await pool.query(initializer);
+        isInitialized = true;
+        console.log('Database initialized successfully.');
+    } catch (err) {
+        console.error('Error initializing database:', err);
+    }
 }
 
 async function checkSessionCode(sessionCode) {
