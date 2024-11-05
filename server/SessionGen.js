@@ -24,12 +24,19 @@ class SessionId {
 
     // Initialize the database connection
     async initDb() {
-        this.connection = await mysql.createConnection({
-            host: 'localhost',
-            user: 'root',
-            password: 'password',
-            database: 'sessions_db'
-        });
+        //error handling
+        try {
+            this.connection = await mysql.createConnection({
+                host: 'localhost',
+                user: 'root',
+                password: 'Tarnished@314',
+                database: 'sessions_db'
+            });
+            console.log('Database connection established successfully.');
+        } catch (error) {
+            console.error('Error connecting to the database:', error);
+            throw error; // Throw error to be handled in the calling code if needed
+        }
     }
 
     // Check if the sessionCode already exists, if not create a new session
