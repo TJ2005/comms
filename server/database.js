@@ -137,5 +137,7 @@ module.exports = {
     addMessage, 
     getMessages, 
     createSettings, 
-    getSettings 
+    getSettings,
+    updateSetting,
+    initialize
 };
