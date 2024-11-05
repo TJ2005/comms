@@ -1,7 +1,6 @@
-var initializer = `CREATE TABLE sessions (
+const initializer = `CREATE TABLE sessions (
     session_id SERIAL PRIMARY KEY,
     session_code VARCHAR(255) UNIQUE NOT NULL,
-    admin VARCHAR(255) NOT NULL,
     usernames JSONB NOT NULL
 );
 
@@ -21,9 +20,16 @@ CREATE TABLE settings (
     max_members INTEGER
 );
 
+CREATE TABLE session_admins (
+    session_admin_id SERIAL PRIMARY KEY,
+    session_id INTEGER REFERENCES sessions(session_id) ON DELETE CASCADE,
+    admin_username VARCHAR(255) NOT NULL
+);
+
 CREATE INDEX idx_session_code ON sessions(session_code);
 CREATE INDEX idx_session_id_messages ON messages(session_id);
-CREATE INDEX idx_session_id_settings ON settings(session_id);`
+CREATE INDEX idx_session_id_settings ON settings(session_id);
+CREATE INDEX idx_session_id_admins ON session_admins(session_id);`;
 
 const { Pool } = require('pg');
 const pool = new Pool({
@@ -39,7 +45,6 @@ async function initialize() {
     console.log(res);
 }
 
-
 async function checkSessionCode(sessionCode) {
     const res = await pool.query('SELECT * FROM sessions WHERE session_code = $1', [sessionCode]);
     return res.rows.length > 0;
@@ -47,11 +52,46 @@ async function checkSessionCode(sessionCode) {
 
 async function createSession(sessionCode, username) {
     const usernames = [username];
+    const sessionRes = await pool.query(
+        'INSERT INTO sessions (session_code, usernames) VALUES ($1, $2) RETURNING *',
+        [sessionCode, JSON.stringify(usernames)]
+    );
+    const sessionId = sessionRes.rows[0].session_id;
+
+    // Add the initial admin to the session_admins table
+    await pool.query(
+        'INSERT INTO session_admins (session_id, admin_username) VALUES ($1, $2)',
+        [sessionId, username]
+    );
+
+    return sessionRes.rows[0];
+}
+
+// Function to add an admin to a session
+async function addAdmin(sessionId, adminUsername) {
     const res = await pool.query(
-        'INSERT INTO sessions (session_code, admin, usernames) VALUES ($1, $2, $3) RETURNING *',
-        [sessionCode, username, JSON.stringify(usernames)]
+        'INSERT INTO session_admins (session_id, admin_username) VALUES ($1, $2) RETURNING *',
+        [sessionId, adminUsername]
     );
     return res.rows[0];
+}
+
+// Function to remove an admin from a session
+async function removeAdmin(sessionId, adminUsername) {
+    const res = await pool.query(
+        'DELETE FROM session_admins WHERE session_id = $1 AND admin_username = $2 RETURNING *',
+        [sessionId, adminUsername]
+    );
+    return res.rowCount > 0; // Returns true if an admin was removed
+}
+
+// Function to get all admins for a session
+async function getAdmins(sessionId) {
+    const res = await pool.query(
+        'SELECT admin_username FROM session_admins WHERE session_id = $1',
+        [sessionId]
+    );
+    return res.rows.map(row => row.admin_username);
 }
 
 async function addMessage(sessionId, username, content) {
@@ -66,7 +106,6 @@ async function getMessages(sessionId) {
     const res = await pool.query('SELECT * FROM messages WHERE session_id = $1 ORDER BY timestamp', [sessionId]);
     return res.rows;
 }
-
 
 async function createSettings(sessionId, expiry, attachments, maxMembers) {
     const res = await pool.query(
@@ -84,11 +123,19 @@ async function updateSetting(sessionId, settingKey, settingValue) {
     return res.rows[0];
 }
 
-
-
 async function getSettings(sessionId) {
     const res = await pool.query('SELECT * FROM settings WHERE session_id = $1', [sessionId]);
     return res.rows[0];
 }
 
-module.exports = { checkSessionCode, createSession, addMessage, getMessages, createSettings, getSettings };
+module.exports = { 
+    checkSessionCode, 
+    createSession, 
+    addAdmin, 
+    removeAdmin, 
+    getAdmins, 
+    addMessage, 
+    getMessages, 
+    createSettings, 
+    getSettings 
+};
