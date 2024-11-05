@@ -1,3 +1,4 @@
+// Creating a WebSocket client ( DHRUV )
 const socket = new WebSocket('ws://localhost:8080');
 
 socket.onopen = () => {

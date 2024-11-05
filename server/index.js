@@ -29,6 +29,8 @@ function handleSubmit(event) {
         console.log("Code submitted successfully");
         // Send the data to the server
         // INCOMPLETE
+        
+        // MAKE FUNCTION TO SEND DATA TO SERVER
     }
 }
 // Define an async function to fetch the random username
@@ -58,4 +60,4 @@ async function fetchRandomUsernames() {
       console.error('Error fetching the random usernames:', error);
     }
   }
-  
+//console.log("fetchRandomUsernames() function:", fetchRandomUsernames());
