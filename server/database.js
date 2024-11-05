@@ -67,6 +67,7 @@ async function getMessages(sessionId) {
     return res.rows;
 }
 
+
 async function createSettings(sessionId, expiry, attachments, maxMembers) {
     const res = await pool.query(
         'INSERT INTO settings (session_id, expiry, attachments, max_members) VALUES ($1, $2, $3, $4) RETURNING *',
@@ -74,6 +75,16 @@ async function createSettings(sessionId, expiry, attachments, maxMembers) {
     );
     return res.rows[0];
 }
+
+async function updateSetting(sessionId, settingKey, settingValue) {
+    const res = await pool.query(
+        `UPDATE settings SET ${settingKey} = $1 WHERE session_id = $2 RETURNING *`,
+        [settingValue, sessionId]
+    );
+    return res.rows[0];
+}
+
+
 
 async function getSettings(sessionId) {
     const res = await pool.query('SELECT * FROM settings WHERE session_id = $1', [sessionId]);
