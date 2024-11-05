@@ -29,7 +29,6 @@ function sendMessage() {
 }
 
 const input = document.getElementById('input');
-
 setTimeout(function() {
   const input = document.getElementById('input');
   input.addEventListener('keypress', function(event) {
