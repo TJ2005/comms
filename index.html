@@ -51,12 +51,6 @@
             </div>
         </nav>
 
-<<<<<<< Updated upstream
-
-
-=======
-        
->>>>>>> Stashed changes
         <div id="logo-container" class="logo-container">
             <p id="js-typing">comms//</p> <!-- Typing effect -->
         </div>
@@ -73,18 +67,19 @@
                     <img src="pfp.svg" height="200px" width="200px">
                 </div>
                 <div class="gFrame show-animator">
-                    <form class="form-design" onsubmit="handleSubmit()">
+                    <form class="form-design" onsubmit="handleSubmit(event)">
                         <br>
                         <br>
                             <input type="text" id="username" name="username" placeholder="username" autofocus>
                             <br>
                             <div class="gButton">
                                 <div class="enCode">
-                                    <input type="text" placeholder="Enter Code"> 
+                                    <input type="text" placeholder="Enter Code">   
                                 </div>
                                 <div class="go">
                                     <input type="submit" value="Go">
                                 </div>
+                                
                             </div>
                     </form>
                 </div>
@@ -93,6 +88,7 @@
                 </div>
             </div>
         </div>
-
+    <!-- script for submit handling-->
+    <script src="server/index.js"></script>
     </body>
 </html>
