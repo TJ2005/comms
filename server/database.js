@@ -140,6 +140,28 @@ async function getSettings(sessionId) {
     return res.rows[0];
 }
 
+async function addUserToSession(sessionCode, username) {
+    // Check if the session exists
+    const sessionRes = await pool.query('SELECT * FROM sessions WHERE session_code = $1', [sessionCode]);
+    if (sessionRes.rows.length === 0) {
+        throw new Error('Session not found');
+    }
+
+    const sessionId = sessionRes.rows[0].session_id;
+    let usernames = sessionRes.rows[0].usernames;
+
+    // Check if the user is already in the session
+    if (usernames.includes(username)) {
+        throw new Error('User already in session');
+    }
+
+    // Add the user to the session
+    usernames.push(username);
+    await pool.query('UPDATE sessions SET usernames = $1 WHERE session_id = $2', [JSON.stringify(usernames), sessionId]);
+
+    return { sessionId, sessionCode, usernames };
+}
+
 module.exports = { 
     checkSessionCode, 
     createSession, 
