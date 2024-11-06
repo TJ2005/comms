@@ -1,31 +1,82 @@
 const express = require('express');
 const app = express();
 const WebSocket = require('ws');
+const { Pool } = require('pg');
 
+app.use(express.json());
 
-const {
-  checkSessionCode,
-  createSession,
-  addAdmin,
-  removeAdmin,
-  getAdmins,
-  addMessage,
-  getMessages,
-  upsertSettings,
-  getSettings,
-  initialize,
-  joinSession
-} = require('./database');
-
-// Initialize the database
-initialize().then(() => {
-  console.log('Database initialized successfully.');
-}).catch(err => {
-  console.error('Error initializing database:', err);
+const con = new Pool({
+    user: 'postgres',     // replace with your PostgreSQL username
+    host: 'localhost',    // or your PostgreSQL server address
+    database: 'comms',    // replace with your database name
+    password: 'root',     // replace with your database password
+    port: 5432,           // PostgreSQL's default port
 });
 
-app.use(express.static('public')); // Serve static files from public folder
+// Insert message into Messages table (commented out the storeMessage function)
+/*
+async function storeMessage(username, message, timestamp) {
+    const insertQuery = `INSERT INTO Messages (SessionID, Username, Message, Timestamp) VALUES ($1, $2, $3, $4)`;
+    try {
+        await con.query(insertQuery, [sessionId, username, message, timestamp]);
+        console.log('Message stored in database');
+    } catch (err) {
+        console.error('Error storing message:', err);
+    }
+}
+*/
 
+// Add user to session (update session's usernames in the database)
+async function addUserToSession(sessionCode, username) {
+    try {
+        const res = await con.query(
+            'UPDATE sessions SET usernames = jsonb_set(usernames, array[jsonb_array_length(usernames)::text], $1) WHERE session_code = $2 RETURNING *',
+            [JSON.stringify(username), sessionCode]
+        );
+        console.log('Session updated with new username:', res.rows[0]);
+    } catch (err) {
+        console.error('Error adding user to session:', err);
+    }
+}
+
+// Check if session code exists
+async function checkSessionCode(code) {
+    try {
+        const res = await con.query(
+            'SELECT * FROM sessions WHERE session_code = $1',
+            [code]
+        );
+        return res.rowCount > 0; // Returns true if the session code exists
+    } catch (err) {
+        console.error('Error checking session code:', err);
+        return false;
+    }
+}
+
+// API routes
+app.post('/api/add-user-to-session', async (req, res) => {
+    const { username, code } = req.body;
+    console.log(`Input received - Code: ${code}, Username: ${username}`);
+    
+    try {
+        await addUserToSession(code, username);
+        res.sendStatus(200);
+    } catch (error) {
+        res.status(500).send('Error adding user to session');
+    }
+});
+
+app.get('/api/check-session-code', async (req, res) => {
+    const { code } = req.query;
+    try {
+        const exists = await checkSessionCode(code);
+        res.json({ exists });
+    } catch (error) {
+        res.status(500).send('Error checking session code');
+    }
+});
+
+// WebSocket setup
 const wss = new WebSocket.Server({ port: 8080 });
 console.log("WebSocket Server running on port 8080");
 
@@ -114,6 +165,7 @@ wss.on('connection', (ws) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log('Server running on port ${PORT}');
 });

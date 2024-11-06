@@ -1,24 +1,25 @@
+const { Pool } = require('pg');
+const pool = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'comms',
+    password: 'root',
+    port: 5432
+});
+
+let isInitialized = false;
+
+// Database schema initializer
 const initializer = `
 CREATE TABLE IF NOT EXISTS sessions (
     session_code VARCHAR(255) PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    usernames TEXT[]
 );
 
 CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS user_tokens (
-    token_id SERIAL PRIMARY KEY,
-    token VARCHAR(255) NOT NULL,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS session_users (
-    session_code VARCHAR(255) REFERENCES sessions(session_code) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    PRIMARY KEY (session_code, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS session_admins (
@@ -43,19 +44,9 @@ CREATE TABLE IF NOT EXISTS settings (
 
 -- Indexes for optimized queries
 CREATE INDEX IF NOT EXISTS idx_session_code_messages ON messages(session_code);
-CREATE INDEX IF NOT EXISTS idx_session_code_users ON session_users(session_code);`;
+CREATE INDEX IF NOT EXISTS idx_session_code_users ON sessions(session_code);`;
 
-const { Pool } = require('pg');
-const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'comms',
-    password: 'root',
-    port: 5432
-});
-
-let isInitialized = false;
-
+// Initialize the database schema
 async function initialize() {
     if (isInitialized) {
         console.log('Database is already initialized.');
@@ -70,33 +61,60 @@ async function initialize() {
     }
 }
 
-// Check if a session with a given code exists
+// Check if the session code exists in the database
 async function checkSessionCode(sessionCode) {
     const res = await pool.query('SELECT 1 FROM sessions WHERE session_code = $1', [sessionCode]);
-    return res.rows.length > 0;
+    return res.rowCount > 0;
 }
 
-// Create a new session and add initial admin
+// Add a new user, if they don't exist, and return user data
+async function addUser(username) {
+    const res = await pool.query(
+        'INSERT INTO users (username) VALUES ($1) ON CONFLICT (username) DO UPDATE SET username = EXCLUDED.username RETURNING *',
+        [username]
+    );
+    return res.rows[0];
+}
+
+// Create a new session and add the user as an admin
 async function createSession(sessionCode, username) {
-    await pool.query('INSERT INTO sessions (session_code) VALUES ($1)', [sessionCode]);
-    const user = await addUser(username);
-    await addAdmin(sessionCode, user.user_id);
+    const user = await addUser(username); // Add the user if they don’t exist
+    await pool.query(
+        'INSERT INTO sessions (session_code, usernames) VALUES ($1, ARRAY[$2])',
+        [sessionCode, username]
+    );
+    await addAdmin(sessionCode, user.user_id); // Adds the user as an admin
+    console.log(`Session ${sessionCode} created with admin ${username}`);
     return { sessionCode, admin: user.username };
 }
 
-// Join an existing session
-async function joinSession(sessionCode, username) {
+// Join an existing session or create it if it doesn’t exist
+async function joinOrCreateSession(sessionCode, username) {
     const sessionExists = await checkSessionCode(sessionCode);
+
     if (!sessionExists) {
-        createSession(sessionCode, username);
-        throw new Error('Session does not exist');
-        
-    }
-    else{
+        // If session does not exist, create it and add user as admin
+        return await createSession(sessionCode, username);
+    } else {
+        // If session exists, add the user to the usernames array
+        await pool.query(
+            'UPDATE sessions SET usernames = array_append(usernames, $1) WHERE session_code = $2',
+            [username, sessionCode]
+        );
         const user = await addUser(username);
-        await addUserToSession(sessionCode, user.username);
+        await addUserToSession(sessionCode, user.user_id); // Add user to session
+        console.log(`User ${username} joined existing session ${sessionCode}`);
         return { sessionCode, username: user.username };
     }
+}
+
+// Add a user to a session (used in joinOrCreateSession)
+async function addUserToSession(sessionCode, userId) {
+    const res = await pool.query(
+        'INSERT INTO session_users (session_code, user_id) VALUES ($1, $2) RETURNING *',
+        [sessionCode, userId]
+    );
+    return res.rows[0];
 }
 
 // Add an admin to a session
@@ -124,17 +142,6 @@ async function getAdmins(sessionCode) {
         [sessionCode]
     );
     return res.rows.map(row => row.username);
-}
-
-
-
-// Add a new user
-async function addUser(username) {
-    const res = await pool.query(
-        'INSERT INTO users (username) VALUES ($1) ON CONFLICT (username) DO UPDATE SET username = EXCLUDED.username RETURNING *',
-        [username]
-    );
-    return res.rows[0];
 }
 
 // Add a message to a session
@@ -172,14 +179,15 @@ async function getSettings(sessionCode) {
     return res.rows[0];
 }
 
+// Initialize the database
 module.exports = {
     initialize,
     checkSessionCode,
     createSession,
+    joinOrCreateSession,
     addAdmin,
     removeAdmin,
     getAdmins,
-    joinSession,
     addMessage,
     getMessages,
     upsertSettings,
