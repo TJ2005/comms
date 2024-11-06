@@ -14,7 +14,8 @@ const {
   createSettings,
   getSettings,
   updateSetting,
-  initialize
+  initialize,
+  addUserToSession
 } = require('./database');
 
 // Initialize the database
@@ -27,6 +28,7 @@ initialize().then(() => {
 app.use(express.static('public')); // Serve static files from public folder
 
 const wss = new WebSocket.Server({ port: 8080 });
+console.log(wss)
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
@@ -38,6 +40,7 @@ wss.on('connection', (ws) => {
     try {
       await addMessage(sessionId, username, message);
       const broadcastMessage = JSON.stringify({ username, message, timestamp });
+      console.log(broadcastMessage)
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(broadcastMessage);

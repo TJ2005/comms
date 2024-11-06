@@ -4,9 +4,9 @@
     <title>COMMS</title>
     <link rel="stylesheet" href="chatroom.css">
     <script src="animations4chatroom.js"></script>
-    <script src="server/client.js"></script>
+    <!--<script src="server/client.js"></script>-->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link r qel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
 </head>
@@ -25,8 +25,34 @@
             <div class="txtinput">
                 <input type="text" class="input" id="input" placeholder="Type your message here...">
                 <button class="sendbtn" id="sendbtn" onclick="showsendopts()">
-                <img class="close" id="close" src="vectors/close.svg">
-                <img class="send" id="send" src="vectors/Send.svg"></button>
+                    <img class="close" id="close" src="vectors/close.svg">
+                    <img class="send" id="send" src="vectors/Send.svg">
+                </button>
+                <script>
+                    // Define the WebSocket connection (make sure to update the URL to your server)
+                    const socket = new WebSocket('ws://localhost:8080');
+
+                    // Add an event listener to the input for the "keydown" event
+                    document.getElementById('input').addEventListener('keydown', function(event) {
+                        if (event.key === 'Enter') {
+                            if (socket.readyState === WebSocket.OPEN) {
+                                console.log('Connected to WebSocket server');
+                                
+                                // Example of sending a message to the server
+                                const message = {
+                                    sessionId: 1, // Replace with your actual session ID
+                                    username: 'user1', // Replace with the actual username
+                                    message: this.value // Send the message from input
+                                };
+
+                                socket.send(JSON.stringify(message));
+                                this.value = ''; // Clear the input after sending
+                            } else {
+                                console.log('WebSocket is not open');
+                            }
+                        }
+                    });
+                </script>
             </div>
         </div>    
     </div>
