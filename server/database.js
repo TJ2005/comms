@@ -173,5 +173,6 @@ module.exports = {
     createSettings, 
     getSettings,
     updateSetting,
-    initialize
+    initialize,
+    addUserToSession
 };
