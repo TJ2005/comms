@@ -38,3 +38,15 @@ setTimeout(function() {
     }
   });
 }, 80);
+
+function sendMessage(sessionId, username, content) {
+  const timestamp = new Date().toISOString(); // Get the current timestamp in ISO format
+  // Call your server-side function to add the message
+  addMessage(sessionId, username, content, timestamp)
+      .then(response => {
+          console.log('Message sent successfully:', response);
+      })
+      .catch(error => {
+          console.error('Error sending message:', error);
+      });
+}

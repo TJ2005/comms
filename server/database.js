@@ -106,10 +106,10 @@ async function getAdmins(sessionId) {
     return res.rows.map(row => row.admin_username);
 }
 
-async function addMessage(sessionId, username, content) {
+async function addMessage(sessionId, username, content, timestamp) {
     const res = await pool.query(
-        'INSERT INTO messages (session_id, username, message_content) VALUES ($1, $2, $3) RETURNING *',
-        [sessionId, username, content]
+        'INSERT INTO messages (session_id, username, message_content, timestamp) VALUES ($1, $2, $3, $4) RETURNING *',
+        [sessionId, username, content, timestamp]
     );
     return res.rows[0];
 }
