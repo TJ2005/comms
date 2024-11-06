@@ -1,6 +1,8 @@
 // This file exists to manage the connection between the Backend and Frontend
 // We intercept form to prevent the default submission and handle the data ourselves
 
+
+
 function handleSubmit(event) {
     // Prevent the form from submitting the default way
     event.preventDefault();

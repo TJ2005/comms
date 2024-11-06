@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
 const WebSocket = require('ws');
+const addMessage = require('./database');
+
+
 const {
   checkSessionCode,
   createSession,
