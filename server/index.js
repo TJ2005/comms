@@ -1,80 +1,100 @@
 // This file exists to manage the connection between the Backend and Frontend
-// We intercept form to prevent the default submission and handle the data ourselves
+// We intercept the form to prevent the default submission and handle the data ourselves
 
-const {addUserToSession} = require('./database');
+const { addUserToSession } = require('./database');
+const { Pool } = require('pg');
 
+// Database connection setup
+const con = new Pool({
+    user: 'postgres',     // replace with your PostgreSQL username
+    host: 'localhost',         // or your PostgreSQL server address
+    database: 'comms',  // replace with your database name
+    password: 'root',  // replace with your database password
+    port: 5432,                // PostgreSQL's default port
+});
 
+const sessionId = 1; // Ensure this session ID exists
 
+// Insert message into Messages table
+async function storeMessage(username, message, timestamp) {
+    const insertQuery = `INSERT INTO Messages (SessionID, Username, Message, Timestamp) VALUES ($1, $2, $3, $4)`;
+    try {
+        await con.query(insertQuery, [sessionId, username, message, timestamp]);
+        console.log('Message stored in database');
+    } catch (err) {
+        console.error('Error storing message:', err);
+    }
+}
+
+// Handle form submission
 function handleSubmit(event) {
     // Prevent the form from submitting the default way
     event.preventDefault();
 
     // Access form data
-    const username = document.getElementById('username').value;
-    const code = document.querySelector('.enCode input').value;
+    const usernameField = document.getElementById('username');
+    const codeField = document.querySelector('.enCode input');
+    
+    let username = usernameField ? usernameField.value : "";
+    let code = codeField ? codeField.value : "";
 
-    // Perform any action with the data (e.g., validation, AJAX request, etc.)
+    // Perform any action with the data (e.g., validation)
     console.log("Username:", username);
     console.log("Code:", code);
 
-    // Checking Code
+    // Check if code is empty, and generate a new one if necessary
     if (!code) {
-      // Generate a random code
-        code=Math.random().toString(36).substring(2, 10);
-        console.log("Code generated successfully");
-    } 
-    // Checking Username
+        code = Math.random().toString(36).substring(2, 10);
+        console.log("Code generated successfully:", code);
+    }
+
+    // Check if username is empty and fetch a random one if necessary
     if (!username) {
-      // Call the async function to fetch the random usernames
-        username= fetchRandomUsernames();
-    } 
-    else {
-        // Example of further processing (e.g., sending data via AJAX)
-        console.log("Code submitted successfully");
-        // Send the data to the server
-        // INCOMPLETE
-        
-        // MAKE FUNCTION TO SEND DATA TO SERVER
+        fetchRandomUsernames().then((fetchedUsername) => {
+            username = fetchedUsername;
+            console.log("Fetched random username:", username);
+
+            // Call the function to add the user to session and store the message
+            processUserAndMessage(username, code);
+        });
+    } else {
+        // Process directly if username is available
+        processUserAndMessage(username, code);
     }
 }
-// Define an async function to fetch the random username
+
+// Fetch a random username from an external API
 async function fetchRandomUsernames() {
     try {
-      // Make the GET request to the API
-      const response = await fetch('https://usernameapiv1.vercel.app/api/random-usernames');
-      
-      // Check if the response is successful
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      // Parse the response as JSON
-      const data = await response.json();
-      
-      // Store the response data in a variable
-      const randomUsernames = data;
-      
-      // Log the usernames to the console
-      console.log(randomUsernames);
-  
-      // You can use the randomUsernames variable for other logic as needed
-      return randomUsernames;
+        const response = await fetch('https://usernameapiv1.vercel.app/api/random-usernames');
+        
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        const data = await response.json();
+        console.log("Random usernames fetched:", data);
+        
+        // Return the first username from the fetched data
+        return data[0];
     } catch (error) {
-      // Handle any errors that occur during the fetch
-      console.error('Error fetching the random usernames:', error);
+        console.error('Error fetching random usernames:', error);
+        return "GuestUser";  // Fallback username in case of an error
     }
-  }
-//console.log("fetchRandomUsernames() function:", fetchRandomUsernames());
-
-async function addusers() {
-  await initialize(); // Ensure the database is initialized
-
-  try {
-      const result = await addUserToSession(code, username);
-      console.log('User  added to session:', result);
-  } catch (error) {
-      console.error('Error adding user to session:', error.message);
-  }
 }
 
-addusers();
+// Process the user and message: Add the user to session, then store the message
+async function processUserAndMessage(username, code) {
+    try {
+        await addUserToSession(code, username); // Assuming this function handles session association
+        console.log('User added to session successfully');
+
+        // Store a sample message with current timestamp
+        const message = "Hello, World!";
+        const timestamp = new Date();
+        await storeMessage(username, message, timestamp);
+    } catch (error) {
+        console.error('Error processing user and message:', error.message);
+    }
+}
+
+// Attach handleSubmit function to form submission
+document.getElementById('yourFormId').addEventListener('submit', handleSubmit);
