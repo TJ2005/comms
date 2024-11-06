@@ -35,8 +35,8 @@ function handleSubmit(event) {
     const usernameField = document.getElementById('username');
     const codeField = document.querySelector('.enCode input');
     
-    let username = usernameField ? usernameField.value : "";
-    let code = codeField ? codeField.value : "";
+    let username = usernameField ? usernameField.value : ""; //check this later
+    let code = codeField ? codeField.value : ""; //check this later
 
     // Perform any action with the data (e.g., validation)
     console.log("Username:", username);

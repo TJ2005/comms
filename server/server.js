@@ -11,11 +11,10 @@ const {
   getAdmins,
   addMessage,
   getMessages,
-  createSettings,
+  upsertSettings,
   getSettings,
-  updateSetting,
   initialize,
-  addUserToSession
+  joinSession
 } = require('./database');
 
 // Initialize the database
@@ -28,30 +27,81 @@ initialize().then(() => {
 app.use(express.static('public')); // Serve static files from public folder
 
 const wss = new WebSocket.Server({ port: 8080 });
-console.log(wss)
+console.log("WebSocket Server running on port 8080");
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
 
   ws.on('message', async (data) => {
-    const { sessionId, username, message } = JSON.parse(data);
-    const timestamp = new Date();
+    const { action, ...params } = JSON.parse(data);  // Destructure to get action and params
 
     try {
-      await addMessage(sessionId, username, message);
-      const broadcastMessage = JSON.stringify({ username, message, timestamp });
-      console.log(broadcastMessage)
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(broadcastMessage);
-        }
-      });
+      let response;
+      switch (action) {
+        case 'createSession':
+          // Creates a new session and adds an initial user/admin
+          response = await createSession(params.sessionCode, params.username);
+          break;
 
-      // Fetch and print all messages from the database
-      const messages = await getMessages(sessionId);
-      console.log('Messages in database:', messages);
+        case 'joinSession':
+          // Adds a new user to an existing session
+          response = await joinSession(params.sessionCode, params.username);
+          console.log(params.sessionCode);
+          console.log(params.username);
+          break;
+
+        case 'addAdmin':
+          // Adds a new admin to a session
+          response = await addAdmin(params.sessionCode, params.userId);
+          break;
+
+        case 'removeAdmin':
+          // Removes an admin from a session
+          response = await removeAdmin(params.sessionCode, params.userId);
+          break;
+
+        case 'addMessage':
+          // Adds a new message to a session
+          response = await addMessage(params.sessionCode, params.userId, params.messageContent);
+          break;
+
+        case 'getMessages':
+          // Retrieves all messages for a session
+          response = await getMessages(params.sessionCode);
+          break;
+
+        case 'updateSettings':
+          // Updates session settings
+          response = await upsertSettings(params.sessionCode, params.attachments, params.maxMembers);
+          break;
+
+        case 'getSettings':
+          // Retrieves session settings
+          response = await getSettings(params.sessionCode);
+          break;
+
+        default:
+          response = { error: 'Unknown action type' };
+      }
+
+      // Send response to the client
+      ws.send(JSON.stringify({ action, status: 'success', data: response }));
+      console.log(`Action "${action}" processed successfully.`);
+
+      // Optionally broadcast to all clients (e.g., for addMessage)
+      if (action === 'addMessage') {
+        const broadcastMessage = JSON.stringify({ username: params.username, message: params.messageContent, timestamp: new Date() });
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(broadcastMessage);
+            console.log('Message broadcasted to client:', broadcastMessage);
+          }
+        });
+      }
+
     } catch (err) {
-      console.error('Error storing message:', err);
+      console.error(`Error processing action "${action}":`, err);
+      ws.send(JSON.stringify({ action, status: 'error', error: err.message }));
     }
   });
      
