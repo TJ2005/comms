@@ -1,6 +1,8 @@
 // This file exists to manage the connection between the Backend and Frontend
 // We intercept form to prevent the default submission and handle the data ourselves
 
+const {addUserToSession} = require('./database');
+
 
 
 function handleSubmit(event) {
@@ -64,3 +66,15 @@ async function fetchRandomUsernames() {
   }
 //console.log("fetchRandomUsernames() function:", fetchRandomUsernames());
 
+async function addusers() {
+  await initialize(); // Ensure the database is initialized
+
+  try {
+      const result = await addUserToSession(code, username);
+      console.log('User  added to session:', result);
+  } catch (error) {
+      console.error('Error adding user to session:', error.message);
+  }
+}
+
+addusers();

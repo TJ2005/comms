@@ -1,7 +1,6 @@
 const express = require('express');
 const app = express();
 const WebSocket = require('ws');
-const addMessage = require('./database');
 
 
 const {
@@ -52,7 +51,7 @@ wss.on('connection', (ws) => {
       console.error('Error storing message:', err);
     }
   });
-
+     
   ws.on('error', (error) => {
     console.error('Error occurred:', error);
   });
