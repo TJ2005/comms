@@ -60,5 +60,3 @@ async function fetchRandomUsernames() {
       console.error('Error fetching the random usernames:', error);
     }
   }
-//console.log("fetchRandomUsernames() function:", fetchRandomUsernames());
-
