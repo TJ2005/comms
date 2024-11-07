@@ -1,10 +1,11 @@
 const express = require('express');
 const { Pool } = require('pg');
 const WebSocket = require('ws');
+const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const app = express();
 
-app.use(cors()); // Enable CORS
+app.use(cors()); // Enable CORS to allow requests from cross port origins
 app.use(express.json());
 
 // Database connection setup
@@ -14,6 +15,29 @@ const con = new Pool({
     database: 'comms',    // replace with your database name
     password: 'root',     // replace with your database password
     port: 5432,           // PostgreSQL's default port
+});
+
+//Handling session_id
+function generateToken() {
+    return uuidv4();
+}
+
+app.post('/api/start-session', async (req, res) => {
+    const { username, code } = req.body;
+
+    try {
+        const sessionToken = generateToken();
+        const updatedSession = await addUserToSession(code, username);
+
+        if (updatedSession) {
+            res.json({ sessionToken });  // Send back the generated token
+        } else {
+            res.status(404).send('Session not found');
+        }
+    } catch (error) {
+        console.error('Error in /api/start-session:', error);
+        res.status(500).send('Error generating session token');
+    }
 });
 
 // Add user to session (update session's usernames in the database)

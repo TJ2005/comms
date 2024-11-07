@@ -1,75 +1,56 @@
 // Establish WebSocket connection to the server
 const socket = new WebSocket('ws://localhost:8080');  // Adjust the URL if needed
 
-// Log when the client connects to the WebSocket
+// Log WebSocket connection status
 socket.addEventListener('open', () => {
   console.log('Client connected to WebSocket server');
 });
-
-// Log when the client disconnects from the WebSocket
 socket.addEventListener('close', () => {
   console.log('Client disconnected from WebSocket server');
 });
-
-// Log WebSocket errors
 socket.addEventListener('error', (error) => {
   console.error('WebSocket error:', error);
 });
 
-fetch('http://localhost:3000/api/add-user-to-session', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-        username: 'example',
-        code: 'exampleCode'
-    })
-  });
-  
-
-// Handle button click for the "go" button
+// Select the button with class "go" and add an event listener
 document.querySelector('.go').addEventListener('click', function(event) {
-    // Prevent the form from submitting the default way
     event.preventDefault();
 
-    // Access form data
-    const usernameField = document.getElementById('username');
-    const codeField = document.querySelector('.enCode input');
-    
-    let username = usernameField ? usernameField.value.trim() : ""; 
-    let code = codeField ? codeField.value.trim() : ""; 
-    
-    // Check if code is empty, and generate a new one if necessary
-    if (!code) {
-      code = Math.random().toString(36).substring(2, 10);
-      console.log("Code generated successfully:", code);
+    const usernameField = document.getElementById('username').value.trim();
+    let codeField = document.querySelector('.enCode input').value.trim();
+
+    if (!codeField) {
+        codeField = Math.random().toString(36).substring(2, 10);
+        console.log("Code generated successfully:", codeField);
     }
 
-    // Check if username is empty and fetch a random one if necessary
-    if (!username) {
+    if (!usernameField) {
         fetch('https://usernameapiv1.vercel.app/api/random-usernames')
             .then(response => response.json())
             .then(data => {
-                username = data[0];
-                console.log("Fetched random username:", username);
-
-                // Call the function to add the user to session
-                sendUserAndSessionData(username, code);
+                const randomUsername = data[0];
+                console.log("Fetched random username:", randomUsername);
+                addUserToSession(randomUsername, codeField);
+            })
+            .catch(error => {
+                console.error('Error fetching random username:', error);
             });
     } else {
-        sendUserAndSessionData(username, code);
+        addUserToSession(usernameField, codeField);
     }
 });
 
-function sendUserAndSessionData(username, code) {
-    // Send data to the server using fetch
-    fetch('/api/add-user-to-session', {
+// Function to perform the fetch request and add user to session
+function addUserToSession(username, code) {
+    fetch('http://localhost:3000/api/add-user-to-session', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, code }),
+        body: JSON.stringify({
+            username: username,
+            code: code
+        })
     })
     .then(response => {
         if (!response.ok) {
@@ -77,15 +58,54 @@ function sendUserAndSessionData(username, code) {
         }
         console.log('User added to session successfully');
 
-        // Send WebSocket message to server
-        const message = JSON.stringify({
-            action: 'joinSession',
-            username: username,
-            sessionCode: code
-        });
-        socket.send(message);  // Send data to WebSocket server
+        // Store session information in local storage
+        localStorage.setItem('sessionCode', code);
+        localStorage.setItem('username', username);
+
+        // Redirect to chatroom.html
+        window.location.href = 'chatroom.html';
     })
     .catch(error => {
-        console.error('Error processing user and session data:', error.message);
+        console.error('Error adding user to session:', error);
     });
+}
+
+// Session Handling
+const existingToken = localStorage.getItem('sessionToken');
+
+if (existingToken) {
+    console.log("Restoring existing session with token:", existingToken);
+    joinSession(existingToken);
+} else {
+    function startNewSession(username, code) {
+        fetch('/api/start-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, code }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sessionToken) {
+                localStorage.setItem('sessionToken', data.sessionToken);
+                console.log("Session token stored successfully:", data.sessionToken);
+                joinSession(data.sessionToken);
+            }
+        })
+        .catch(error => {
+            console.error('Error starting new session:', error.message);
+        });
+    }
+}
+
+// Define joinSession function
+function joinSession(sessionToken) {
+    const sessionCode = localStorage.getItem('sessionCode');  // Retrieve session code if needed
+    const message = JSON.stringify({
+        action: 'joinSession',
+        sessionCode: sessionCode,
+        sessionToken: sessionToken
+    });
+    socket.send(message);
 }
