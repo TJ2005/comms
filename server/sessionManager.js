@@ -1,7 +1,10 @@
 const express = require('express');
 const { Pool } = require('pg');
 const WebSocket = require('ws');
+const cors = require('cors');
 const app = express();
+
+app.use(cors()); // Enable CORS
 app.use(express.json());
 
 // Database connection setup
@@ -16,14 +19,30 @@ const con = new Pool({
 // Add user to session (update session's usernames in the database)
 async function addUserToSession(sessionCode, username) {
     try {
+        console.log(`Adding user to session - Code: ${sessionCode}, Username: ${username}`);
         const res = await con.query(
-            'UPDATE sessions SET usernames = jsonb_set(usernames, array[jsonb_array_length(usernames)::text], $1) WHERE session_code = $2 RETURNING *',
+            `UPDATE sessions 
+             SET usernames = jsonb_set(
+                 COALESCE(usernames, '[]'::jsonb), 
+                 array[jsonb_array_length(COALESCE(usernames, '[]'::jsonb))::text], 
+                 $1::jsonb, 
+                 true
+             ) 
+             WHERE session_code = $2 
+             RETURNING *`,
             [JSON.stringify(username), sessionCode]
         );
-        console.log('Session updated with new username:', res.rows[0]);
+        console.log('Session update result:', res);
+        if (res.rows.length > 0) {
+            console.log('Session updated with new username:', res.rows[0]);
+            return res.rows[0];
+        } else {
+            console.error('No session updated');
+            return null;
+        }
     } catch (err) {
         console.error('Error adding user to session:', err);
-        throw err; // Add this line to ensure the error is propagated
+        throw err;
     }
 }
 
@@ -47,8 +66,12 @@ app.post('/api/add-user-to-session', async (req, res) => {
     console.log(`Input received - Code: ${code}, Username: ${username}`);
     
     try {
-        await addUserToSession(code, username);
-        res.sendStatus(200);
+        const updatedSession = await addUserToSession(code, username);
+        if (updatedSession) {
+            res.sendStatus(200);
+        } else {
+            res.status(404).send('Session not found');
+        }
     } catch (error) {
         console.error('Error in /api/add-user-to-session:', error);
         res.status(500).send('Error adding user to session');
@@ -74,23 +97,20 @@ wss.on('connection', (ws) => {
 
   ws.on('message', async (data) => {
     const { action, ...params } = JSON.parse(data);
-
     try {
       switch (action) {
         case 'joinSession':
-          await addUserToSession(params.sessionCode, params.username);
+          const result = await addUserToSession(params.sessionCode, params.username);
           console.log(`Session Code: ${params.sessionCode}`);
           console.log(`Username: ${params.username}`);
+          console.log(`Add User Result: ${result}`);
           break;
-
         default:
           ws.send(JSON.stringify({ error: 'Unknown action type' }));
           console.error('Unknown action type');
       }
-
       ws.send(JSON.stringify({ action, status: 'success' }));
       console.log(`Action "${action}" processed successfully.`);
-
     } catch (err) {
       console.error(`Error processing action "${action}":`, err);
       ws.send(JSON.stringify({ action, status: 'error', error: err.message }));
