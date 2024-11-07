@@ -20,31 +20,48 @@ const con = new Pool({
 async function addUserToSession(sessionCode, username) {
     try {
         console.log(`Adding user to session - Code: ${sessionCode}, Username: ${username}`);
-        const res = await con.query(
-            `UPDATE sessions 
-             SET usernames = jsonb_set(
-                 COALESCE(usernames, '[]'::jsonb), 
-                 array[jsonb_array_length(COALESCE(usernames, '[]'::jsonb))::text], 
-                 $1::jsonb, 
-                 true
-             ) 
-             WHERE session_code = $2 
-             RETURNING *`,
-            [JSON.stringify(username), sessionCode]
+
+        // Check if session exists
+        const checkSessionRes = await con.query(
+            'SELECT * FROM sessions WHERE session_code = $1',
+            [sessionCode]
         );
-        console.log('Session update result:', res);
-        if (res.rows.length > 0) {
-            console.log('Session updated with new username:', res.rows[0]);
-            return res.rows[0];
+
+        if (checkSessionRes.rowCount === 0) {
+            // If the session does not exist, create a new one
+            const insertSessionRes = await con.query(
+                'INSERT INTO sessions (session_code, usernames) VALUES ($1, $2) RETURNING *',
+                [sessionCode, JSON.stringify([username])]
+            );
+            console.log(`Session created with code: ${sessionCode}`);
+            return insertSessionRes.rows[0]; // This will include session_id
         } else {
-            console.error('No session updated');
-            return null;
+            // If session exists, update the usernames array
+            const updateSessionRes = await con.query(
+                `UPDATE sessions 
+                 SET usernames = jsonb_set(
+                     COALESCE(usernames, '[]'::jsonb), 
+                     array[jsonb_array_length(COALESCE(usernames, '[]'::jsonb))::text], 
+                     $1::jsonb, 
+                     true
+                 ) 
+                 WHERE session_code = $2 
+                 RETURNING *`,
+                [JSON.stringify(username), sessionCode]
+            );
+
+            if (updateSessionRes.rowCount === 0) {
+                throw new Error('Failed to update session usernames');
+            }
+            return updateSessionRes.rows[0]; // This will also include session_id
         }
     } catch (err) {
         console.error('Error adding user to session:', err);
-        throw err;
+        throw new Error('Database operation failed');
     }
 }
+
+
 
 // Check if session code exists
 async function checkSessionCode(code) {
@@ -130,3 +147,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+

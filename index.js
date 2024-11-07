@@ -16,16 +16,17 @@ socket.addEventListener('error', (error) => {
   console.error('WebSocket error:', error);
 });
 
-fetch('http://127.0.0.1:3000/api/add-user-to-session', {
-  method: 'POST',
-  headers: {
-      'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-      username: 'exampleUser',
-      code: 'exampleCode'
-  })
-});
+fetch('http://localhost:3000/api/add-user-to-session', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        username: 'example',
+        code: 'exampleCode'
+    })
+  });
+  
 
 // Handle button click for the "go" button
 document.querySelector('.go').addEventListener('click', function(event) {
