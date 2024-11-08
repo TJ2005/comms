@@ -2,11 +2,18 @@
 a website for communication where people can exchange information
 
 # Developers Notes
-the current state of this project is i have made the loading animation for startup
+the current state of the project is as follows
+1) Message is being parsed by the server properly
+2) Entries function work
+3) DBMS Management functions are implemented
+4) Core frontend is done
+5) Functional Frontend has not been done
 
-1) step 0: while the animation is playing the other page content should be loaded.
-    [w3 schools loading check](https://www.w3schools.com/jsref/prop_doc_readystate.asp)
-2) step 1: Play animation until Type next character is completed.
-    We can simply resize the logo-container class on complete loading
-3) step 2: if after completion the page is not loaded for the client then the animation stays there until its loaded.
-4) step 4: after page loads the page changes from this to the landing page which i will be making 
+# Current Features to be developed( Developers perspective )
+1) Multi User in one session with live message update
+2) Multi Session
+3) Working base.
+Thats it for now
+
+# Extra features
+1) Ill list these later
