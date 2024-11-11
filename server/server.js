@@ -30,6 +30,12 @@ wss.on('connection', (ws) => {
                     const sessionId = await db.joinOrCreateSession(params.username, params.sessionCode);
                     response = { sessionId };
                     console.log(sessionId);
+                        // Send back the session ID
+                        ws.send(JSON.stringify({
+                            action: action,
+                            status: 'success',
+                            data: sessionId
+                        }));
                     break;
 
                 case 'sendMessage':

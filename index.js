@@ -15,15 +15,15 @@ socket.addEventListener('error', (error) => {
 // Select the button with class "go" and add an event listener
 document.querySelector('.go').addEventListener('click', function(event) {
     event.preventDefault();
-
+    // Get the value of the username field and trim any whitespace
     const usernameField = document.getElementById('username').value.trim();
     let codeField = document.querySelector('.enCode input').value.trim();
-
+    // If the code field is empty, gen a random code
     if (!codeField) {
         codeField = Math.random().toString(36).substring(2, 10);
         console.log("Code generated successfully:", codeField);
     }
-
+    // If the username field is empty, fetch a random username
     if (!usernameField) {
         fetch('https://usernameapiv1.vercel.app/api/random-usernames')
             .then(response => response.json())
@@ -36,11 +36,10 @@ document.querySelector('.go').addEventListener('click', function(event) {
                 console.error('Error fetching random username:', error);
             });
     } else {
+        // Pass the username and code to the logon function
         logon(usernameField, codeField);
     }
 });
-
-
 
 
 // Define joinSession function
@@ -51,4 +50,21 @@ function logon(username,code) {
         sessionCode: code
     });
     socket.send(message);
+     // Handle response when received
+    socket.addEventListener('message', function (event) {
+        const response = JSON.parse(event.data);
+        if (response.status === 'success') {
+            const sessionId = response.data.sessionId;
+            console.log('Session ID received:', sessionId);
+
+            // Store session information in localStorage (or sessionStorage)
+            localStorage.setItem('sessionId', sessionId);
+            localStorage.setItem('username', username);
+
+            // Redirect to chatroom.html
+            window.location.href = 'chatroom.html';
+        } else {
+            console.error('Error logging in:', response.error);
+        }
+    });
 }
