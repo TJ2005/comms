@@ -27,27 +27,28 @@ wss.on('connection', (ws) => {
                 case 'logOn':
                     // Join or create session based on username and session code
                     console.log(params.username,params.sessionCode);
-                    const sessionId = await db.joinOrCreateSession(params.username, params.sessionCode);
-                    response = { sessionId };
-                    console.log(sessionId);
+                    const ids = await db.joinOrCreateSession(params.username, params.sessionCode);
+                    response = { ids };
+                    console.log(ids);
                         // Send back the session ID
                         ws.send(JSON.stringify({
                             action: action,
                             status: 'success',
-                            data: sessionId
+                            data: ids,
                         }));
                     break;
 
                 case 'sendMessage':
+                    // Add User ID Validation here.
                     // Send a message in a session
-                    const userId = await db.newUser(params.username); // Ensure the user exists
-                    await db.sendMessage(userId, params.sessionId, params.message, null, 'text');
+                    console.log(params.userId, params.sessionId, params.message, null, 'text');
+                    await db.sendMessage(params.userId, params.sessionId, params.message, null, 'text');
                     response = { status: 'Message sent' };
                     break;
 
                 case 'getMessages':
                     // Retrieve messages from a session
-                    const messages = await db.getMessage(params.sessionId, params.limit || 10);
+                    const messages = await db.getMessage(params.sessionId, params.limit || 100);
                     response = { messages };
                     break;
 
@@ -55,7 +56,6 @@ wss.on('connection', (ws) => {
                     response = { error: 'Unknown action type' };
             }
 
-            ws.send(JSON.stringify({ action, status: 'success', data: response }));
             console.log(`Action "${action}" processed successfully.`);
 
             // Broadcast new messages to all clients
@@ -91,3 +91,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+

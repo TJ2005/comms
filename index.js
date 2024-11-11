@@ -41,30 +41,33 @@ document.querySelector('.go').addEventListener('click', function(event) {
     }
 });
 
-
 // Define joinSession function
-function logon(username,code) {
+function logon(username, code) {
     const message = JSON.stringify({
         action: 'logOn',
         username: username,
         sessionCode: code
     });
     socket.send(message);
-     // Handle response when received
-    socket.addEventListener('message', function (event) {
-        const response = JSON.parse(event.data);
-        if (response.status === 'success') {
-            const sessionId = response.data.sessionId;
-            console.log('Session ID received:', sessionId);
 
-            // Store session information in localStorage (or sessionStorage)
-            localStorage.setItem('sessionId', sessionId);
-            localStorage.setItem('username', username);
 
-            // Redirect to chatroom.html
-            window.location.href = 'chatroom.html';
-        } else {
-            console.error('Error logging in:', response.error);
-        }
-    });
 }
+
+// Handle response when received
+socket.addEventListener('message', function (event) {
+    const response = JSON.parse(event.data);
+    if (response.status === 'success') {
+        const { sessionId, userId } = response.data;
+        console.log('Session ID received:', sessionId);
+        console.log('User ID received:', userId);
+        console.log('hi')
+        // Store session information in localStorage
+        localStorage.setItem('sessionId', sessionId);
+        localStorage.setItem('username', username);
+        localStorage.setItem('userId', userId);
+        // Redirect to chatroom.html
+        window.location.href = 'chatroom.html';
+    } else {
+        console.error('Error logging in:', response.error);
+    }
+});

@@ -144,7 +144,7 @@ async function joinOrCreateSession(username, code) {
     await joinSession(userId, sessionId);
 
     // Return the session ID to confirm the session the user joined or created
-    return sessionId;
+    return {sessionId,userId};
 }
 
 // Add admin to a session
@@ -179,7 +179,7 @@ const sendMessage = async (userId, sessionId, content, fileUrl = null, messageTy
 };
 
 // Get messages from a session
-const getMessage = async (sessionId, limit = 10) => {
+const getMessage = async (sessionId, limit = 100) => {
     const result = await pool.query(
         `SELECT * FROM messages WHERE session_id = $1 ORDER BY timestamp DESC LIMIT $2`,
         [sessionId, limit]
