@@ -7,189 +7,197 @@ const pool = new Pool({
     port: 5432
 });
 
+// Database schema initializer
+const initializer = `-- Users Table: Stores user information
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,           -- Auto-incrementing user ID
+  username VARCHAR(255) NOT NULL   -- User's username
+);
+
+-- Sessions Table: Represents a chat session (e.g., chat room)
+CREATE TABLE IF NOT EXISTS sessions (
+  id SERIAL PRIMARY KEY,           -- Auto-incrementing session ID
+  code VARCHAR(255) NOT NULL       -- Unique session code
+);
+
+-- User-Sessions Table: Tracks users in sessions and their admin status
+CREATE TABLE IF NOT EXISTS user_sessions (
+  user_id INTEGER NOT NULL,        -- ID of the user
+  session_id INTEGER NOT NULL,     -- ID of the session
+  is_admin BOOLEAN DEFAULT FALSE,  -- Whether the user is an admin in this session
+  
+  PRIMARY KEY (user_id, session_id), -- Composite primary key
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,  -- Foreign key to users
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE -- Foreign key to sessions
+);
+
+-- Messages Table: Stores messages sent in sessions
+CREATE TABLE IF NOT EXISTS messages (
+  id SERIAL PRIMARY KEY,           -- Auto-incrementing message ID
+  user_id INTEGER NOT NULL,        -- ID of the user who sent the message
+  session_id INTEGER NOT NULL,     -- ID of the session in which the message was sent
+  content TEXT,                    -- Message content (text or file URL)
+  file_url VARCHAR(255),           -- URL of the file (if applicable)
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Time when the message was sent
+  message_type VARCHAR(50) NOT NULL,  -- Type of message (e.g., text, file, image)
+  
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,  -- Foreign key to users
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE  -- Foreign key to sessions
+
+);
+
+`
+
 let isInitialized = false;
 
 // Database schema initializer
-const initializer = `
-CREATE TABLE IF NOT EXISTS sessions (
-    session_code VARCHAR(255) PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    usernames TEXT[]
-);
-
-CREATE TABLE IF NOT EXISTS users (
-    user_id SERIAL PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS session_admins (
-    session_code VARCHAR(255) REFERENCES sessions(session_code) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
-    PRIMARY KEY (session_code, user_id)
-);
-
-CREATE TABLE IF NOT EXISTS messages (
-    message_id SERIAL PRIMARY KEY,
-    session_code VARCHAR(255) REFERENCES sessions(session_code) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
-    message_content TEXT NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS settings (
-    session_code VARCHAR(255) PRIMARY KEY REFERENCES sessions(session_code),
-    attachments BOOLEAN DEFAULT TRUE,
-    max_members INTEGER DEFAULT 10
-);
-
--- Indexes for optimized queries
-CREATE INDEX IF NOT EXISTS idx_session_code_messages ON messages(session_code);
-CREATE INDEX IF NOT EXISTS idx_session_code_users ON sessions(session_code);`;
-
-// Initialize the database schema
+// This function is ran everytime server runs so if database is dropped or non
+// existent we can call it and it should give us the structure
 async function initialize() {
-    if (isInitialized) {
-        console.log('Database is already initialized.');
-        return;
-    }
-    try {
+    if (!isInitialized) {
         await pool.query(initializer);
         isInitialized = true;
-        console.log('Database initialized successfully.');
-    } catch (err) {
-        console.error('Error initializing database:', err);
     }
 }
 
-// Check if the session code exists in the database
-async function checkSessionCode(sessionCode) {
-    const res = await pool.query('SELECT 1 FROM sessions WHERE session_code = $1', [sessionCode]);
-    return res.rowCount > 0;
-}
 
-// Add a new user, if they don't exist, and return user data
-async function addUser(username) {
-    const res = await pool.query(
-        'INSERT INTO users (username) VALUES ($1) ON CONFLICT (username) DO UPDATE SET username = EXCLUDED.username RETURNING *',
+// Add a new user
+// Our table now has a different username and session table so we create user
+// This functions return value can be then used to then link this user to another
+// Session
+
+// Notice we are returning id when we never inserted it?
+// its because our table has serialized id for now.
+async function newUser(username) {
+    // Check if the user already exists
+    const userCheck = await pool.query(
+        `SELECT id FROM users WHERE username = $1`,
         [username]
     );
-    return res.rows[0];
-}
 
-// Create a new session and add the user as an admin
-async function createSession(sessionCode, username) {
-    const user = await addUser(username); // Add the user if they don’t exist
-    await pool.query(
-        'INSERT INTO sessions (session_code, usernames) VALUES ($1, ARRAY[$2])',
-        [sessionCode, username]
-    );
-    await addAdmin(sessionCode, user.user_id); // Adds the user as an admin
-    console.log(`Session ${sessionCode} created with admin ${username}`);
-    return { sessionCode, admin: user.username };
-}
-
-// Join an existing session or create it if it doesn’t exist
-async function joinOrCreateSession(sessionCode, username) {
-    const sessionExists = await checkSessionCode(sessionCode);
-
-    if (!sessionExists) {
-        // If session does not exist, create it and add user as admin
-        return await createSession(sessionCode, username);
-    } else {
-        // If session exists, add the user to the usernames array
-        await pool.query(
-            'UPDATE sessions SET usernames = array_append(usernames, $1) WHERE session_code = $2',
-            [username, sessionCode]
-        );
-        const user = await addUser(username);
-        await addUserToSession(sessionCode, user.user_id); // Add user to session
-        console.log(`User ${username} joined existing session ${sessionCode}`);
-        return { sessionCode, username: user.username };
+    if (userCheck.rowCount > 0) {
+        // User already exists, return their ID
+        return userCheck.rows[0].id;
     }
-}
 
-// Add a user to a session (used in joinOrCreateSession)
-async function addUserToSession(sessionCode, userId) {
-    const res = await pool.query(
-        'INSERT INTO session_users (session_code, user_id) VALUES ($1, $2) RETURNING *',
-        [sessionCode, userId]
+    // Insert the new user and return the ID
+    const result = await pool.query(
+        `INSERT INTO users (username) VALUES ($1) RETURNING id`,
+        [username]
     );
-    return res.rows[0];
+    return result.rows[0].id;
 }
 
-// Add an admin to a session
-async function addAdmin(sessionCode, userId) {
-    const res = await pool.query(
-        'INSERT INTO session_admins (session_code, user_id) VALUES ($1, $2) RETURNING *',
-        [sessionCode, userId]
+
+// Create a new session with a unique code
+// We simply pass the code and we get a serialized session id back
+async function createSession(code) {
+    const result = await pool.query(
+        `INSERT INTO sessions (code) VALUES ($1) RETURNING id`,
+        [code]
     );
-    return res.rows[0];
+    return result.rows[0].id;
 }
 
-// Remove an admin from a session
-async function removeAdmin(sessionCode, userId) {
-    const res = await pool.query(
-        'DELETE FROM session_admins WHERE session_code = $1 AND user_id = $2 RETURNING *',
-        [sessionCode, userId]
+
+// Join an existing session by adding the user to `user_sessions`
+// Since our user_sessions is a merged table of user and session we can simply
+// insert the user and session id in this table and we are done adding a user
+// into a session
+async function joinSession(userId, sessionId) {
+    await pool.query(
+        `INSERT INTO user_sessions (user_id, session_id) 
+         VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [userId, sessionId]
     );
-    return res.rowCount > 0;
 }
 
-// Get all admins of a session
-async function getAdmins(sessionCode) {
-    const res = await pool.query(
-        'SELECT u.username FROM session_admins sa JOIN users u ON sa.user_id = u.user_id WHERE sa.session_code = $1',
-        [sessionCode]
+
+// This function will be called for login
+// Main function to handle joining or creating a session
+// if user doesnt exist it will create a new user else it will just return the user id
+// if session doesnt exist it will create a new session else it will just return the session id
+// Note : DBMS Is managing the part wherein if the session doesnt exist and gets created it simply
+// Makes the user the admin. This is done by the addAdmin function
+// Proceeds to join the user to the session with the join table
+async function joinOrCreateSession(username, code) {
+    // Ensure the user exists or create them if necessary
+    const userId = await newUser(username);
+
+    // Check if the session with the given code exists
+    let session = await pool.query(
+        `SELECT id FROM sessions WHERE code = $1`,
+        [code]
     );
-    return res.rows.map(row => row.username);
+
+    let sessionId;
+    if (session.rowCount === 0) {
+        // Session does not exist, create a new session
+        sessionId = await createSession(code);
+        addAdmin(userId, sessionId);
+    } else {
+        // Session exists, retrieve the session ID
+        sessionId = session.rows[0].id;
+    }
+
+    // Add the user to the session (join session)
+    await joinSession(userId, sessionId);
+
+    // Return the session ID to confirm the session the user joined or created
+    return sessionId;
 }
 
-// Add a message to a session
-async function addMessage(sessionCode, userId, content) {
-    const res = await pool.query(
-        'INSERT INTO messages (session_code, user_id, message_content) VALUES ($1, $2, $3) RETURNING *',
-        [sessionCode, userId, content]
+// Add admin to a session
+// Simple Bolean Change for admin column to the user in the session
+async function addAdmin(userId, sessionId) {
+    await pool.query(
+        `UPDATE user_sessions SET is_admin = TRUE 
+         WHERE user_id = $1 AND session_id = $2`,
+        [userId, sessionId]
     );
-    return res.rows[0];
 }
 
-// Retrieve all messages for a session
-async function getMessages(sessionCode) {
-    const res = await pool.query(
-        'SELECT m.*, u.username FROM messages m JOIN users u ON m.user_id = u.user_id WHERE m.session_code = $1 ORDER BY m.timestamp',
-        [sessionCode]
+// Remove admin from a session
+async function removeAdmin(userId, sessionId) {
+    await pool.query(
+        `UPDATE user_sessions SET is_admin = FALSE 
+         WHERE user_id = $1 AND session_id = $2`,
+        [userId, sessionId]
     );
-    return res.rows;
 }
 
-// Create or update settings for a session
-async function upsertSettings(sessionCode, attachments, maxMembers) {
-    const res = await pool.query(
-        `INSERT INTO settings (session_code, attachments, max_members)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (session_code) DO UPDATE SET attachments = EXCLUDED.attachments, max_members = EXCLUDED.max_members RETURNING *`,
-        [sessionCode, attachments, maxMembers]
+
+
+// Send a message
+// File_Url is null because its clearly not a file and its type is too text
+const sendMessage = async (userId, sessionId, content, fileUrl = null, messageType = 'text') => {
+    await pool.query(
+        `INSERT INTO messages (user_id, session_id, content, file_url, message_type) 
+         VALUES ($1, $2, $3, $4, $5)`,
+        [userId, sessionId, content, fileUrl, messageType]
     );
-    return res.rows[0];
-}
+};
 
-// Get session settings
-async function getSettings(sessionCode) {
-    const res = await pool.query('SELECT * FROM settings WHERE session_code = $1', [sessionCode]);
-    return res.rows[0];
-}
+// Get messages from a session
+const getMessage = async (sessionId, limit = 10) => {
+    const result = await pool.query(
+        `SELECT * FROM messages WHERE session_id = $1 ORDER BY timestamp DESC LIMIT $2`,
+        [sessionId, limit]
+    );
+    return result.rows;
+};
 
-// Initialize the database
-module.exports = {
+
+
+
+
+module.exports={
     initialize,
-    checkSessionCode,
+    newUser,
     createSession,
     joinOrCreateSession,
     addAdmin,
     removeAdmin,
-    getAdmins,
-    addMessage,
-    getMessages,
-    upsertSettings,
-    getSettings
-};
+    sendMessage,
+    getMessage
+}
