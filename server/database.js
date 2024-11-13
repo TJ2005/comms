@@ -193,18 +193,6 @@ const getMessage = async (sessionId, limit = 100) => {
     return result.rows;
 };
 
-async function getSessionCode(userId,sessionId){
-    const result = await pool.query(
-        `SELECT * FROM user_sessions WHERE user_id = $1 AND session_id = $2`,
-        [userId,sessionId]
-    );
-    return result.rows;
-
-}
-
-
-
-
 
 
 module.exports={

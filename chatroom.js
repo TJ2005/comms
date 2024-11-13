@@ -4,12 +4,16 @@ const username = localStorage.getItem('username');
 window.addEventListener('DOMContentLoaded', () => {
     const sessionId = localStorage.getItem('sessionId');
     const userId = localStorage.getItem('userId');
+    const sessionCode = localStorage.getItem('sessionCode');
+    codeElement=document.getElementById('code');
+    console.log(codeElement);
+    codeElement.textContent = sessionCode;
+
 
     if (!sessionId || !username) {
         window.location.href = 'index.html';
         return;
     }
-
     socket = new WebSocket('ws://localhost:8080');
 
     socket.addEventListener('open', () => {
@@ -90,4 +94,5 @@ function displayMessage(msg) {
     messageWrapper.appendChild(messageDiv);
     chat.appendChild(messageWrapper);
     chat.scrollTop = chat.scrollHeight;
+    
 }

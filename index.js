@@ -51,7 +51,7 @@ function logon(username, code) {
         sessionCode: code
     });
     socket.send(message);
-
+    localStorage.setItem('sessionCode', code);
 
 }
 
