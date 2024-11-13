@@ -38,6 +38,8 @@ document.querySelector('.go').addEventListener('click', function(event) {
     } else {
         // Pass the username and code to the logon function
         logon(usernameField, codeField);
+        localStorage.setItem('username', usernameField);
+
     }
 });
 
@@ -63,7 +65,6 @@ socket.addEventListener('message', function (event) {
         console.log('hi')
         // Store session information in localStorage
         localStorage.setItem('sessionId', sessionId);
-        localStorage.setItem('username', username);
         localStorage.setItem('userId', userId);
         // Redirect to chatroom.html
         window.location.href = 'chatroom.html';

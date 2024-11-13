@@ -32,7 +32,7 @@ wss.on('connection', (ws) => {
                     console.log(ids);
                         // Send back the session ID
                         ws.send(JSON.stringify({
-                            action: action,
+                            action: 'logOnResponse',
                             status: 'success',
                             data: ids,
                         }));
@@ -50,6 +50,11 @@ wss.on('connection', (ws) => {
                     // Retrieve messages from a session
                     const messages = await db.getMessage(params.sessionId, params.limit || 100);
                     response = { messages };
+                    ws.send(JSON.stringify({
+                        action: 'getMessagesResponse',
+                        status: 'success',
+                        data: messages,
+                    }));
                     break;
 
                 default:
@@ -61,8 +66,9 @@ wss.on('connection', (ws) => {
             // Broadcast new messages to all clients
             if (action === 'sendMessage') {
                 const broadcastMessage = JSON.stringify({
+                    action: 'broadcastMessage', 
                     username: params.username,
-                    message: params.message,
+                    content: params.message,
                     timestamp: new Date(),
                 });
                 wss.clients.forEach((client) => {

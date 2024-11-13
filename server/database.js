@@ -178,10 +178,16 @@ const sendMessage = async (userId, sessionId, content, fileUrl = null, messageTy
     );
 };
 
-// Get messages from a session
+// Get messages from a session along with the username of the sender
 const getMessage = async (sessionId, limit = 100) => {
     const result = await pool.query(
-        `SELECT * FROM messages WHERE session_id = $1 ORDER BY timestamp DESC LIMIT $2`,
+        `SELECT messages.id, messages.user_id, messages.session_id, messages.content, 
+                messages.file_url, messages.timestamp, messages.message_type, users.username
+         FROM messages
+         JOIN users ON messages.user_id = users.id
+         WHERE messages.session_id = $1
+         ORDER BY messages.timestamp DESC
+         LIMIT $2`,
         [sessionId, limit]
     );
     return result.rows;

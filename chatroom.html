@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COMMS</title>
+    <script src="chatroom.js" defer></script> <!-- Use defer to ensure DOM loads before JS -->
     <link rel="stylesheet" href="chatroom.css">
-    <script src="animations4chatroom.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -11,24 +13,26 @@
 </head>
 <body>
     <div class="sam">
-        <div class="codebox" style="width: 26.408839779005%; height: 1.5%;">
-            <div class="code">
-                Your Code:
-            </div>
+        <div class="codebox">
+            <div class="code">Your Code:</div>
             <div class="share">
-                <button class="sharebtn" id="sharebtn"><img src="vectors/Share_Android.svg"></button>
+                <button class="sharebtn" id="sharebtn">
+                    <img src="vectors/Share_Android.svg" alt="Share">
+                </button>
             </div>
         </div>
-        <div class="chatbox" style="width:61.14595210946409%; height:90%; ">
-            <div class="sendopts" id="sendopts" style="display: none;">Drag or Drop files</div>
+        
+        <div class="chatbox">
+            <div class="chat" id="chat">
+                <!-- Messages will be dynamically loaded here -->
+            </div>
+
             <div class="txtinput">
                 <input type="text" class="input" id="input" placeholder="Type your message here...">
-                <button class="sendbtn" id="sendbtn" onclick="showsendopts()">
-                    <img class="close" id="close" src="vectors/close.svg">
-                    <img class="send" id="send" src="vectors/Send.svg">
+                <button class="sendbtn" id="sendbtn" onclick="sendMessageHandler()">
+                    <img class="close" id="close" src="vectors/close.svg" alt="Close">
+                    <img class="send" id="send" src="vectors/Send.svg" alt="Send">
                 </button>
-                <script src="chatroom.js">
-                </script>
             </div>
         </div>    
     </div>
