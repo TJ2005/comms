@@ -28,7 +28,7 @@ document.querySelector('.go').addEventListener('click', function(event) {
         fetch('https://usernameapiv1.vercel.app/api/random-usernames')
             .then(response => response.json())
             .then(data => {
-                const randomUsername = data[0];
+                const randomUsername = data["usernames"][0];
                 console.log("Fetched random username:", randomUsername);
                 logon(randomUsername, codeField);
             })
